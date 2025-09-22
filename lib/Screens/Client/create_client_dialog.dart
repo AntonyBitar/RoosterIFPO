@@ -1,9 +1,4 @@
-import 'package:country_currency_pickers/country.dart';
-import 'package:country_currency_pickers/country_picker_dropdown.dart';
-import 'package:country_currency_pickers/utils/utils.dart';
-import 'package:dotted_border/dotted_border.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import '../../Backend/ClientsBackend/get_client_create_info.dart';
 import '../../Backend/ClientsBackend/store_client.dart';

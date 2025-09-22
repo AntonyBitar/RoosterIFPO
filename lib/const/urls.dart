@@ -96,8 +96,8 @@ const kReportCashTrayUrl='$baseUrl/tray-report';//id
 const kCreateCashTrayUrl='$baseUrl/trays/create';
 const kSelectRoleUrl='$baseUrl/users/selectRole';
 
-const kTermsAndConditionsUrl='$baseUrl/settings/terms/history';
-const kAddTermsAndConditionsUrl='$baseUrl/settings/terms/add';
+const kTermsAndConditionsUrl='$baseUrl/terms';
+const kUpdateTermsAndConditionsUrl='$baseUrl/terms/update';//id
 
 
 
@@ -131,3 +131,9 @@ const kGetFieldsForCreateDeliveryUrl = '$baseUrl/deliveries/create';
 const kStoreDeliveryUrl = '$baseUrl/deliveries';
 const kGetAllDeliveriesUrl = '$baseUrl/deliveries';
 const kUpdateDeliveryUrl = '$baseUrl/deliveries/update';
+
+
+const kPaymentTermsUrl = '$baseUrl/payment-terms';
+const kUpdatePaymentTermsUrl = '$baseUrl/payment-terms/update';
+const kDeliveryTermsUrl = '$baseUrl/delivery-terms';
+const kUpdateDeliveryTermsUrl = '$baseUrl/delivery-terms/update';

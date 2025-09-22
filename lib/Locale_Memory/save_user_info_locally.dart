@@ -27,7 +27,7 @@ Future<Map> getUserInfoFromPref() async {
   String name = prefs.getString('name') ?? '';
   String companyId = prefs.getString('companyId') ?? '';
   String companyName = prefs.getString('companyName') ?? '';
-  String isItGarage = prefs.getString('isItGarage') ?? '0';
+  String isItGarage = prefs.getString('isItGarage') ?? '1';
   return {
     'accessToken': accessToken,
     'identifier1': userId,
@@ -95,7 +95,7 @@ Future<String> getShowLogoOnPosFromPref() async {
 
 Future<String> getIsItGarageFromPref() async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
-  String isItGarage = prefs.getString('isItGarage') ?? '0';
+  String isItGarage = prefs.getString('isItGarage') ?? '1';
   return isItGarage;
 }
 

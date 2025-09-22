@@ -10,10 +10,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:rooster_app/Backend/Quotations/TermsAndConditions/get_terms_and_conditions.dart';
+import 'package:rooster_app/Backend/TermsAndConditions/get_terms_and_conditions.dart';
+import 'package:rooster_app/Controllers/payment_terms_controller.dart';
 import 'package:rooster_app/Controllers/products_controller.dart';
+import 'package:rooster_app/Controllers/terms_and_conditions_controller.dart';
 import 'package:rooster_app/Locale_Memory/save_user_info_locally.dart';
 import 'package:rooster_app/Screens/Combo/combo.dart';
+import 'package:rooster_app/Screens/Configuration/delivery_terms.dart';
 import 'package:rooster_app/Screens/Products/CreateProductDialog/create_product_dialog.dart';
 import 'package:rooster_app/Screens/Quotations/print_quotation.dart';
 import 'package:rooster_app/Widgets/dialog_title.dart';
@@ -34,10 +37,12 @@ import '../../../Widgets/reusable_btn.dart';
 import '../../../Widgets/reusable_text_field.dart';
 import '../../../const/Sizes.dart';
 import '../../../const/colors.dart';
-import '../../Backend/Quotations/TermsAndConditions/save_terms_and_conditions.dart';
+import '../../Controllers/delivery_terms_controller.dart';
+import '../../Widgets/HomeWidgets/home_app_bar.dart';
 import '../../Widgets/TransferWidgets/reusable_time_line_tile.dart';
 import '../../Widgets/TransferWidgets/under_item_btn.dart';
 import '../../Widgets/dialog_drop_menu.dart';
+import '../../Widgets/reusableReferenceTextField.dart';
 import '../../Widgets/reusable_add_card.dart';
 import '../../Widgets/reusable_more.dart';
 import '../../Widgets/table_title.dart';
@@ -75,6 +80,8 @@ class _CreateNewQuotationState extends State<CreateNewQuotation> {
   TextEditingController vatExemptController = TextEditingController();
 
   TextEditingController paymentTermsController = TextEditingController();
+  TextEditingController termsAndConditionsMenuController =
+      TextEditingController();
   TextEditingController priceConditionController = TextEditingController();
   TextEditingController priceListController = TextEditingController();
   TextEditingController salesPersonController = TextEditingController();
@@ -100,7 +107,6 @@ class _CreateNewQuotationState extends State<CreateNewQuotation> {
   int currentStep = 0;
   int selectedTabIndex = 0;
   List tabsList = ['order_lines', 'other_information'];
-  List<String> termsList = [];
   String selectedTab = 'order_lines'.tr;
 
   double listViewLength = Sizes.deviceHeight * 0.08;
@@ -110,6 +116,9 @@ class _CreateNewQuotationState extends State<CreateNewQuotation> {
   bool isActiveDeliveredChecked = false;
   final QuotationController quotationController = Get.find();
   final HomeController homeController = Get.find();
+  final TermsAndConditionsController termsController = Get.find();
+  final PaymentTermsController paymentController = Get.find();
+  final DeliveryTermsController deliveryController = Get.find();
   final ExchangeRatesController exchangeRatesController = Get.find();
 
   int progressVar = 0;
@@ -190,62 +199,29 @@ class _CreateNewQuotationState extends State<CreateNewQuotation> {
   }
 
   // Restore content from saved string (e.g., from API)
-  void _loadContent() {
-    if (_savedContent == null) return;
+  // void _loadContent() {
+  //   if (_savedContent == null) return;
+  //
+  //   final delta = Delta.fromJson(jsonDecode(_savedContent!));
+  //   final doc = Document.fromDelta(delta);
+  //
+  //   setState(() {
+  //     _controller = QuillController(
+  //       document: doc,
+  //       selection: const TextSelection.collapsed(offset: 0),
+  //     );
+  //   });
+  // }
 
-    final delta = Delta.fromJson(jsonDecode(_savedContent!));
-    final doc = Document.fromDelta(delta);
-
-    setState(() {
-      _controller = QuillController(
-        document: doc,
-        selection: const TextSelection.collapsed(offset: 0),
-      );
-    });
-  }
-
-  void _saveTermsAndConditions() async {
-    final deltaJson = _controller.document.toDelta().toJson();
-    final jsonString = jsonEncode(deltaJson);
-
-    setState(() {
-      _savedContent = jsonString;
-    });
-    termsAndConditionsController.text = jsonString;
-
-    var p = await storeTermsAndConditions(_savedContent!);
-    if (p['success'] == true) {
-      CommonWidgets.snackBar('Success', p['message']);
-    } else {
-      CommonWidgets.snackBar('error', p['message']);
-    }
-  }
-
-  List termsAndConditionsList = [];
-  int currentIndex = 0;
-  getAllTermsAndConditions() async {
-    var res = await getTermsAndConditions();
-    if (res['success'] == true) {
-      termsAndConditionsList = res['data'];
-      termsAndConditionsList = termsAndConditionsList.reversed.toList();
-    }
-  }
-
-  showLastTermsAndConditionsList() {
-    setState(() {
-      if (currentIndex < termsAndConditionsList.length) {
-        _savedContent =
-            '${termsAndConditionsList[currentIndex]['terms_and_conditions']}'
-                    .startsWith('[{')
-                ? termsAndConditionsList[currentIndex]['terms_and_conditions']
-                : '[{"insert":"\n"}]';
-        _loadContent();
-        currentIndex++;
-      } else {
-        CommonWidgets.snackBar('error', 'The list is over');
-      }
-    });
-  }
+  // List termsAndConditionsList = [];
+  // int currentIndex = 0;
+  // getAllTermsAndConditions() async {
+  //   var res = await getTermsAndConditions();
+  //   if (res['success'] == true) {
+  //     termsAndConditionsList = res['data'];
+  //     termsAndConditionsList = termsAndConditionsList.reversed.toList();
+  //   }
+  // }
 
   @override
   void initState() {
@@ -278,7 +254,10 @@ class _CreateNewQuotationState extends State<CreateNewQuotation> {
     validityController.text = DateFormat('yyyy-MM-dd').format(DateTime.now());
     inputDateController.text = DateFormat('yyyy-MM-dd').format(DateTime.now());
     priceListController.text = 'STANDARD';
-    getAllTermsAndConditions();
+    paymentController.getPaymentTermsFromBack();
+    deliveryController.getDeliveryTermsFromBack();
+    termsController.getTermsAndConditionsFromBack();
+    // getAllTermsAndConditions();
     super.initState();
   }
 
@@ -537,6 +516,14 @@ class _CreateNewQuotationState extends State<CreateNewQuotation> {
                                               : termsAndConditionsController
                                                   .text;
                                       return PrintQuotationData(
+                                        termsAndConditions:
+                                            termsController
+                                                .termsAndConditionsList[termsController
+                                                .termsAndConditionsIdsList
+                                                .indexOf(
+                                                  quotationCont
+                                                      .selectedTermAndConditionId,
+                                                )],
                                         header: quotationCont.selectedHeader,
                                         isPrintedAs0:
                                             quotationCont.isPrintedAs0,
@@ -627,7 +614,7 @@ class _CreateNewQuotationState extends State<CreateNewQuotation> {
                                                 .phoneNumber[selectedCustomerIds] ??
                                             '---',
                                         clientName: clientNameController.text,
-                                        termsAndConditions: terms,
+                                        termsAndConditionsNote: terms,
                                         itemsInfoPrint: itemsInfoPrint,
                                       );
                                     },
@@ -716,7 +703,7 @@ class _CreateNewQuotationState extends State<CreateNewQuotation> {
                                     selectedCustomerIds,
                                     validityController.text,
                                     inputDateController.text,
-                                    '', //todo paymentTermsController.text,
+                                    quotationCont.selectedPaymentTermId,
                                     quotationCont.selectedPriceListId,
                                     quotationCont
                                         .selectedCurrencyId, //selectedCurrency
@@ -766,6 +753,7 @@ class _CreateNewQuotationState extends State<CreateNewQuotation> {
                                                 .selectedHeaderIndex]['id']
                                             .toString()
                                         : '',
+                                    quotationCont.selectedTermAndConditionId,
                                   );
                                   if (res['success'] == true) {
                                     CommonWidgets.snackBar(
@@ -990,6 +978,16 @@ class _CreateNewQuotationState extends State<CreateNewQuotation> {
                                           }
 
                                           return PrintQuotationData(
+                                            termsAndConditions:
+                                            quotationCont
+                                                .selectedTermAndConditionId.isNotEmpty?
+                                            termsController
+                                                .termsAndConditionsTextsList[termsController
+                                                .termsAndConditionsIdsList
+                                                .indexOf(
+                                              quotationCont
+                                                  .selectedTermAndConditionId,
+                                            )]:'',
                                             header:
                                                 quotationCont.selectedHeader,
                                             isPrintedAs0:
@@ -1095,7 +1093,7 @@ class _CreateNewQuotationState extends State<CreateNewQuotation> {
                                                 '---',
                                             clientName:
                                                 clientNameController.text,
-                                            termsAndConditions:
+                                            termsAndConditionsNote:
                                                 termsAndConditionsController
                                                     .text,
                                             itemsInfoPrint: itemsInfoPrint,
@@ -1201,10 +1199,10 @@ class _CreateNewQuotationState extends State<CreateNewQuotation> {
                                             color: TypographyColor.titleTable,
                                           ),
                                         ),
-                                        DialogTextField(
+                                        ReusableReferenceTextField(
+                                          type: 'quotations',
                                           textEditingController: refController,
-                                          text: '${'ref'.tr}:',
-                                          hint: 'manual_reference'.tr,
+
                                           rowWidth:
                                               homeController.isOpened.value
                                                   ? MediaQuery.of(
@@ -1225,8 +1223,35 @@ class _CreateNewQuotationState extends State<CreateNewQuotation> {
                                                         context,
                                                       ).size.width *
                                                       0.13,
-                                          validationFunc: (val) {},
                                         ),
+                                        // DialogTextField(
+                                        //   textEditingController: refController,
+                                        //   text: '${'ref'.tr}:',
+                                        //   hint: 'manual_reference'.tr,
+                                        //   rowWidth:
+                                        //       homeController.isOpened.value
+                                        //           ? MediaQuery.of(
+                                        //                 context,
+                                        //               ).size.width *
+                                        //               0.12
+                                        //           : MediaQuery.of(
+                                        //                 context,
+                                        //               ).size.width *
+                                        //               0.15,
+                                        //   textFieldWidth:
+                                        //       homeController.isOpened.value
+                                        //           ? MediaQuery.of(
+                                        //                 context,
+                                        //               ).size.width *
+                                        //               0.09
+                                        //           : MediaQuery.of(
+                                        //                 context,
+                                        //               ).size.width *
+                                        //               0.13,
+                                        //   validationFunc: (val) {},
+                                        //   onChangedFunc: (val){
+                                        //   },
+                                        // ),
                                         SizedBox(
                                           width:
                                               homeController.isOpened.value
@@ -2192,7 +2217,7 @@ class _CreateNewQuotationState extends State<CreateNewQuotation> {
                                             mainAxisAlignment:
                                                 MainAxisAlignment.spaceBetween,
                                             children: [
-                                              Text('chance'.tr),
+                                              Text('potential'.tr),
                                               DropdownMenu<String>(
                                                 width:
                                                     homeController
@@ -2427,11 +2452,10 @@ class _CreateNewQuotationState extends State<CreateNewQuotation> {
                                                     TypographyColor.titleTable,
                                               ),
                                             ),
-                                            DialogTextField(
+                                            ReusableReferenceTextField(
+                                              type: 'quotations',
                                               textEditingController:
                                                   refController,
-                                              text: '${'ref'.tr}:',
-                                              hint: 'manual_reference'.tr,
                                               rowWidth:
                                                   homeController.isOpened.value
                                                       ? MediaQuery.of(
@@ -2452,8 +2476,34 @@ class _CreateNewQuotationState extends State<CreateNewQuotation> {
                                                             context,
                                                           ).size.width *
                                                           0.18,
-                                              validationFunc: (val) {},
                                             ),
+                                            // DialogTextField(
+                                            //   textEditingController:
+                                            //       refController,
+                                            //   text: '${'ref'.tr}:',
+                                            //   hint: 'manual_reference'.tr,
+                                            //   rowWidth:
+                                            //       homeController.isOpened.value
+                                            //           ? MediaQuery.of(
+                                            //                 context,
+                                            //               ).size.width *
+                                            //               0.18
+                                            //           : MediaQuery.of(
+                                            //                 context,
+                                            //               ).size.width *
+                                            //               0.21,
+                                            //   textFieldWidth:
+                                            //       homeController.isOpened.value
+                                            //           ? MediaQuery.of(
+                                            //                 context,
+                                            //               ).size.width *
+                                            //               0.15
+                                            //           : MediaQuery.of(
+                                            //                 context,
+                                            //               ).size.width *
+                                            //               0.18,
+                                            //   validationFunc: (val) {},
+                                            // ),
                                             SizedBox(
                                               width:
                                                   homeController.isOpened.value
@@ -4007,30 +4057,31 @@ class _CreateNewQuotationState extends State<CreateNewQuotation> {
                                 ),
                               ),
 
-                              DialogTextField(
-                                textEditingController: paymentTermsController,
-                                text: 'payment_terms'.tr,
-                                hint: '',
-                                rowWidth:
-                                    screenWidth > 1250
-                                        ? MediaQuery.of(context).size.width *
-                                            0.20
-                                        : screenWidth > 1049
-                                        ? MediaQuery.of(context).size.width *
-                                            0.23
-                                        : MediaQuery.of(context).size.width *
-                                            0.22,
-                                textFieldWidth:
-                                    screenWidth > 1250
-                                        ? MediaQuery.of(context).size.width *
-                                            0.11
-                                        : screenWidth > 1049
-                                        ? MediaQuery.of(context).size.width *
-                                            0.13
-                                        : MediaQuery.of(context).size.width *
-                                            0.12,
-                                validationFunc: (val) {},
-                              ),
+                              // DialogTextField(
+                              //   textEditingController: paymentTermsController,
+                              //   text: 'payment_terms'.tr,
+                              //   hint: '',
+                              //   rowWidth:
+                              //       screenWidth > 1250
+                              //           ? MediaQuery.of(context).size.width *
+                              //               0.20
+                              //           : screenWidth > 1049
+                              //           ? MediaQuery.of(context).size.width *
+                              //               0.23
+                              //           : MediaQuery.of(context).size.width *
+                              //               0.22,
+                              //   textFieldWidth:
+                              //       screenWidth > 1250
+                              //           ? MediaQuery.of(context).size.width *
+                              //               0.11
+                              //           : screenWidth > 1049
+                              //           ? MediaQuery.of(context).size.width *
+                              //               0.13
+                              //           : MediaQuery.of(context).size.width *
+                              //               0.12,
+                              //   validationFunc: (val) {},
+                              // ),
+
                               // ReusableDropDownMenuWithSearch(
                               //   list: termsList,
                               //   text: 'payment_terms'.tr,
@@ -4065,92 +4116,65 @@ class _CreateNewQuotationState extends State<CreateNewQuotation> {
                               //     // );
                               //   },
                               // ),
-                              // SizedBox(
-                              //   width: MediaQuery.of(context).size.width * 0.24,
-                              //   child: Row(
-                              //     mainAxisAlignment:
-                              //         MainAxisAlignment.spaceBetween,
-                              //     children: [
-                              //       Text('payment_terms'.tr),
-                              //
-                              //       GetBuilder<ExchangeRatesController>(
-                              //         builder: (cont) {
-                              //           return DropdownMenu<String>(
-                              //             width:
-                              //                 MediaQuery.of(
-                              //                   context,
-                              //                 ).size.width *
-                              //                 0.15,
-                              //             // requestFocusOnTap: false,
-                              //             enableSearch: true,
-                              //             controller: paymentTermsController,
-                              //             hintText: '',
-                              //             inputDecorationTheme: InputDecorationTheme(
-                              //               // filled: true,
-                              //               hintStyle: const TextStyle(
-                              //                 fontStyle: FontStyle.italic,
-                              //               ),
-                              //               contentPadding:
-                              //                   const EdgeInsets.fromLTRB(
-                              //                     20,
-                              //                     0,
-                              //                     25,
-                              //                     5,
-                              //                   ),
-                              //               // outlineBorder: BorderSide(color: Colors.black,),
-                              //               enabledBorder: OutlineInputBorder(
-                              //                 borderSide: BorderSide(
-                              //                   color: Primary.primary
-                              //                       .withAlpha(
-                              //                         (0.2 * 255).toInt(),
-                              //                       ),
-                              //                   width: 1,
-                              //                 ),
-                              //                 borderRadius:
-                              //                     const BorderRadius.all(
-                              //                       Radius.circular(9),
-                              //                     ),
-                              //               ),
-                              //               focusedBorder: OutlineInputBorder(
-                              //                 borderSide: BorderSide(
-                              //                   color: Primary.primary
-                              //                       .withAlpha(
-                              //                         (0.4 * 255).toInt(),
-                              //                       ),
-                              //                   width: 2,
-                              //                 ),
-                              //                 borderRadius:
-                              //                     const BorderRadius.all(
-                              //                       Radius.circular(9),
-                              //                     ),
-                              //               ),
-                              //             ),
-                              //             // menuStyle: ,
-                              //             menuHeight: 250,
-                              //             dropdownMenuEntries:
-                              //                 termsList.map<
-                              //                   DropdownMenuEntry<String>
-                              //                 >((String option) {
-                              //                   return DropdownMenuEntry<
-                              //                     String
-                              //                   >(value: option, label: option);
-                              //                 }).toList(),
-                              //             enableFilter: true,
-                              //             onSelected: (String? val) {
-                              //               setState(() {
-                              //                 // selectedCurrency = val!;
-                              //                 // var index = cont.currenciesNamesList
-                              //                 //     .indexOf(val);
-                              //                 // selectedCurrencyId =
-                              //                 // cont.currenciesIdsList[index];
-                              //               });
-                              //             },
-                              //           );
-                              //         },
-                              //       ),
-                              //     ],
-                              //   ),
-                              // ),
+                              GetBuilder<PaymentTermsController>(
+                                builder: (cont) {
+                                  return ReusableDropDownMenuWithSearch(
+                                    list: cont.paymentTermsNamesList,
+                                    text: 'payment_terms'.tr,
+                                    hint: '${'search'.tr}...',
+                                    controller: paymentTermsController,
+                                    onSelected: (String? val) {
+                                      int index = cont.paymentTermsNamesList
+                                          .indexOf(val!);
+                                      quotationCont.setSelectedPaymentTermId(
+                                        cont.paymentTermsIdsList[index],
+                                      );
+                                    },
+                                    validationFunc: (value) {
+                                      // if (value == null || value.isEmpty) {
+                                      //   return 'select_option'.tr;
+                                      // }
+                                      // return null;
+                                    },
+                                    rowWidth:
+                                        MediaQuery.of(context).size.width *
+                                        0.24,
+                                    textFieldWidth:
+                                        MediaQuery.of(context).size.width *
+                                        0.15,
+                                    clickableOptionText:
+                                        'or_create_new_payment_term'.tr,
+                                    isThereClickableOption: true,
+                                    onTappedClickableOption: () {
+                                      showDialog<String>(
+                                        context: context,
+                                        builder:
+                                            (
+                                              BuildContext context,
+                                            ) => AlertDialog(
+                                              backgroundColor: Colors.white,
+                                              contentPadding:
+                                                  const EdgeInsets.all(0),
+                                              titlePadding:
+                                                  const EdgeInsets.all(0),
+                                              actionsPadding:
+                                                  const EdgeInsets.all(0),
+                                              shape:
+                                                  const RoundedRectangleBorder(
+                                                    borderRadius:
+                                                        BorderRadius.all(
+                                                          Radius.circular(9),
+                                                        ),
+                                                  ),
+                                              elevation: 0,
+                                              content:
+                                                  configDialogs['payment_terms'],
+                                            ),
+                                      );
+                                    },
+                                  );
+                                },
+                              ),
                             ],
                           ),
 
@@ -4210,15 +4234,56 @@ class _CreateNewQuotationState extends State<CreateNewQuotation> {
                                 ),
                               ),
                               gapW16,
-                              DialogTextField(
-                                textEditingController: deliveryTermsController,
-                                text: '${'delivery_terms'.tr}:',
-                                hint: '',
-                                rowWidth:
-                                    MediaQuery.of(context).size.width * 0.24,
-                                textFieldWidth:
-                                    MediaQuery.of(context).size.width * 0.15,
-                                validationFunc: (val) {},
+                              GetBuilder<DeliveryTermsController>(
+                                builder: (cont) {
+                                  return ReusableDropDownMenuWithSearch(
+                                    list: cont.deliveryTermsNamesList,
+                                    text: 'delivery_terms'.tr,
+                                    hint: '${'search'.tr}...',
+                                    controller: deliveryTermsController,
+                                    onSelected: (String? val) {
+                                      var index = cont.deliveryTermsNamesList
+                                          .indexOf(val!);
+                                      quotationCont.setSelectedDeliveryTermId(
+                                        cont.deliveryTermsIdsList[index],
+                                      );
+                                    },
+                                    validationFunc: (value) {
+                                      // if (value == null || value.isEmpty) {
+                                      //   return 'select_option'.tr;
+                                      // }
+                                      // return null;
+                                    },
+                                    rowWidth:
+                                        MediaQuery.of(context).size.width *
+                                        0.24,
+                                    textFieldWidth:
+                                        MediaQuery.of(context).size.width *
+                                        0.15,
+                                    clickableOptionText:
+                                        'or_create_new_delivery_term'.tr,
+                                    isThereClickableOption: true,
+                                    onTappedClickableOption: () {
+                                      showDialog<String>(
+                                        context: context,
+                                        builder:
+                                            (
+                                              BuildContext context,
+                                            ) => const AlertDialog(
+                                              backgroundColor: Colors.white,
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius: BorderRadius.all(
+                                                  Radius.circular(9),
+                                                ),
+                                              ),
+                                              elevation: 0,
+                                              content:
+                                                  DeliveryTermsDialogContent(),
+                                            ),
+                                      );
+                                    },
+                                  );
+                                },
                               ),
                             ],
                           ),
@@ -4654,7 +4719,7 @@ class _CreateNewQuotationState extends State<CreateNewQuotation> {
                                               ),
                                               menuHeight: 250,
                                               dropdownMenuEntries:
-                                                  termsList.map<
+                                                  vatExemptList.map<
                                                     DropdownMenuEntry<String>
                                                   >((String option) {
                                                     return DropdownMenuEntry<
@@ -5159,29 +5224,29 @@ class _CreateNewQuotationState extends State<CreateNewQuotation> {
                                         MainAxisAlignment.spaceBetween,
                                     children: [
                                       Text(
-                                        'terms_conditions'.tr,
+                                        'note'.tr,
                                         style: TextStyle(
                                           fontSize: 15,
                                           color: TypographyColor.titleTable,
                                           fontWeight: FontWeight.bold,
                                         ),
                                       ),
-                                      Row(
-                                        children: [
-                                          IconButton(
-                                            icon: const Icon(Icons.save_alt),
-                                            onPressed: () async {
-                                              _saveTermsAndConditions();
-                                            },
-                                          ),
-                                          gapW6,
-                                          IconButton(
-                                            icon: const Icon(Icons.restore),
-                                            onPressed:
-                                                showLastTermsAndConditionsList,
-                                          ),
-                                        ],
-                                      ),
+                                      // Row(
+                                      //   children: [
+                                      //     IconButton(
+                                      //       icon: const Icon(Icons.save_alt),
+                                      //       onPressed: () async {
+                                      //         _saveTermsAndConditions();
+                                      //       },
+                                      //     ),
+                                      //     gapW6,
+                                      //     IconButton(
+                                      //       icon: const Icon(Icons.restore),
+                                      //       onPressed:
+                                      //           showLastTermsAndConditionsList,
+                                      //     ),
+                                      //   ],
+                                      // ),
                                     ],
                                   ),
                                   gapH16,
@@ -5243,6 +5308,97 @@ class _CreateNewQuotationState extends State<CreateNewQuotation> {
                                   //     fontStyle: FontStyle.italic,
                                   //   ),
                                   // ),
+                                ],
+                              ),
+                            ),
+                            gapH24,
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                vertical: 20,
+                                horizontal: 40,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(6),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(
+                                        'terms_and_conditions'.tr,
+                                        style: TextStyle(
+                                          fontSize: 15,
+                                          color: TypographyColor.titleTable,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                  gapH16,
+                                  GetBuilder<TermsAndConditionsController>(
+                                    builder: (cont) {
+                                      return ReusableDropDownMenuWithSearch(
+                                        list: cont.termsAndConditionsNamesList,
+                                        text: '',
+                                        hint: '${'search'.tr}...',
+                                        controller:
+                                            termsAndConditionsMenuController,
+                                        onSelected: (String? val) {
+                                          int index = cont
+                                              .termsAndConditionsNamesList
+                                              .indexOf(val!);
+                                          quotationCont
+                                              .setSelectedTermAndConditionId(
+                                                cont.termsAndConditionsIdsList[index],
+                                              );
+                                        },
+                                        validationFunc: (value) {},
+                                        rowWidth:
+                                            MediaQuery.of(context).size.width *
+                                            0.24,
+                                        textFieldWidth:
+                                            MediaQuery.of(context).size.width *
+                                            0.24,
+                                        clickableOptionText:
+                                            'or_create_new_terms_and_conditions'
+                                                .tr,
+                                        isThereClickableOption: true,
+                                        onTappedClickableOption: () {
+                                          showDialog<String>(
+                                            context: context,
+                                            builder:
+                                                (
+                                                  BuildContext context,
+                                                ) => AlertDialog(
+                                                  backgroundColor: Colors.white,
+                                                  contentPadding:
+                                                      const EdgeInsets.all(0),
+                                                  titlePadding:
+                                                      const EdgeInsets.all(0),
+                                                  actionsPadding:
+                                                      const EdgeInsets.all(0),
+                                                  shape:
+                                                      const RoundedRectangleBorder(
+                                                        borderRadius:
+                                                            BorderRadius.all(
+                                                              Radius.circular(
+                                                                9,
+                                                              ),
+                                                            ),
+                                                      ),
+                                                  elevation: 0,
+                                                  content:
+                                                      configDialogs['terms_and_conditions'],
+                                                ),
+                                          );
+                                        },
+                                      );
+                                    },
+                                  ),
                                 ],
                               ),
                             ),
@@ -5565,7 +5721,7 @@ class _CreateNewQuotationState extends State<CreateNewQuotation> {
                                         selectedCustomerIds,
                                         validityController.text,
                                         inputDateController.text,
-                                        '', //todo paymentTermsController.text,
+                                        quotationCont.selectedPaymentTermId,
                                         quotationCont.selectedPriceListId,
                                         quotationCont
                                             .selectedCurrencyId, //selectedCurrency
@@ -5612,7 +5768,7 @@ class _CreateNewQuotationState extends State<CreateNewQuotation> {
                                         // quotationController.newRowMap,
                                         quotationCont.orderedKeys,
                                         titleController.text,
-                                        deliveryTermsController.text,
+                                        quotationCont.selectedDeliveryTermId,
                                         chanceController.text,
                                         homeController.companyName ==
                                                     'CASALAGO' ||
@@ -5623,6 +5779,8 @@ class _CreateNewQuotationState extends State<CreateNewQuotation> {
                                                     .selectedHeaderIndex]['id']
                                                 .toString()
                                             : '',
+                                        quotationCont
+                                            .selectedTermAndConditionId,
                                       );
                                       if (res['success'] == true) {
                                         CommonWidgets.snackBar(
@@ -6171,8 +6329,7 @@ class _ReusableItemRowState extends State<ReusableItemRow> {
                         cont.unitPriceControllers[widget.index]!.text =
                             '${double.parse('${(double.parse(cont.itemUnitPrice[selectedItemId].toString()) / double.parse(divider))}')}';
                       } else if (cont.selectedCurrencyName != 'USD' &&
-                          cont.itemsPricesCurrencies[selectedItemId] ==
-                              'USD') {
+                          cont.itemsPricesCurrencies[selectedItemId] == 'USD') {
                         cont.unitPriceControllers[widget.index]!.text =
                             '${double.parse('${(double.parse(cont.itemUnitPrice[selectedItemId].toString()) * double.parse(cont.exchangeRateForSelectedCurrency))}')}';
                       } else {
@@ -6273,7 +6430,7 @@ class _ReusableItemRowState extends State<ReusableItemRow> {
                       homeController.isOpened.value
                           ? MediaQuery.of(context).size.width * 0.13
                           : MediaQuery.of(context).size.width * 0.16,
-                  clickableOptionText: 'create_virtual_item'.tr,
+                  clickableOptionText: 'create_item'.tr,
                   isThereClickableOption: true,
                   onTappedClickableOption: () {
                     productController.clearData();
@@ -6322,18 +6479,14 @@ class _ReusableItemRowState extends State<ReusableItemRow> {
                         color: Colors.black.withAlpha((0.1 * 255).toInt()),
                         width: 1,
                       ),
-                      borderRadius: const BorderRadius.all(
-                        Radius.circular(6),
-                      ),
+                      borderRadius: const BorderRadius.all(Radius.circular(6)),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderSide: BorderSide(
                         color: Colors.black.withAlpha((0.1 * 255).toInt()),
                         width: 1,
                       ),
-                      borderRadius: const BorderRadius.all(
-                        Radius.circular(6),
-                      ),
+                      borderRadius: const BorderRadius.all(Radius.circular(6)),
                     ),
                     errorStyle: const TextStyle(fontSize: 10.0),
                     focusedErrorBorder: const OutlineInputBorder(
@@ -6383,18 +6536,14 @@ class _ReusableItemRowState extends State<ReusableItemRow> {
                         color: Colors.black.withAlpha((0.1 * 255).toInt()),
                         width: 1,
                       ),
-                      borderRadius: const BorderRadius.all(
-                        Radius.circular(6),
-                      ),
+                      borderRadius: const BorderRadius.all(Radius.circular(6)),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderSide: BorderSide(
                         color: Colors.black.withAlpha((0.1 * 255).toInt()),
                         width: 1,
                       ),
-                      borderRadius: const BorderRadius.all(
-                        Radius.circular(6),
-                      ),
+                      borderRadius: const BorderRadius.all(Radius.circular(6)),
                     ),
                     errorStyle: const TextStyle(fontSize: 10.0),
                     focusedErrorBorder: const OutlineInputBorder(
@@ -6564,18 +6713,14 @@ class _ReusableItemRowState extends State<ReusableItemRow> {
                         color: Colors.black.withAlpha((0.1 * 255).toInt()),
                         width: 1,
                       ),
-                      borderRadius: const BorderRadius.all(
-                        Radius.circular(6),
-                      ),
+                      borderRadius: const BorderRadius.all(Radius.circular(6)),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderSide: BorderSide(
                         color: Colors.black.withAlpha((0.1 * 255).toInt()),
                         width: 1,
                       ),
-                      borderRadius: const BorderRadius.all(
-                        Radius.circular(6),
-                      ),
+                      borderRadius: const BorderRadius.all(Radius.circular(6)),
                     ),
                     errorStyle: const TextStyle(fontSize: 10.0),
                     focusedErrorBorder: const OutlineInputBorder(
@@ -6665,11 +6810,9 @@ class _ReusableItemRowState extends State<ReusableItemRow> {
                                                         ),
                                                   ),
                                               elevation: 0,
-                                              content:
-                                                  ShowItemQuantitiesDialog(
-                                                    selectedItemId:
-                                                        selectedItemId,
-                                                  ),
+                                              content: ShowItemQuantitiesDialog(
+                                                selectedItemId: selectedItemId,
+                                              ),
                                             ),
                                       );
                                     },
@@ -6930,14 +7073,12 @@ class _ReusableNoteRowState extends State<ReusableNoteRow> {
                   child: InkWell(
                     onTap: () {
                       setState(() {
-                        quotationController
-                            .decrementListViewLengthInQuotation(
-                              quotationController.increment,
-                            );
-                        quotationController
-                            .removeFromRowsInListViewInQuotation(
-                              widget.index,
-                            );
+                        quotationController.decrementListViewLengthInQuotation(
+                          quotationController.increment,
+                        );
+                        quotationController.removeFromRowsInListViewInQuotation(
+                          widget.index,
+                        );
                         // quotationController
                         //     .removeFromOrderLinesInQuotationList(
                         //       widget.index.toString(),
@@ -6970,7 +7111,6 @@ class _ReusableImageRowState extends State<ReusableImageRow> {
   late Uint8List imageFile;
 
   double listViewLength = Sizes.deviceHeight * 0.08;
-
 
   @override
   void initState() {
@@ -7048,8 +7188,7 @@ class _ReusableImageRowState extends State<ReusableImageRow> {
                                 )
                                 : Row(
                                   mainAxisAlignment: MainAxisAlignment.start,
-                                  crossAxisAlignment:
-                                      CrossAxisAlignment.center,
+                                  crossAxisAlignment: CrossAxisAlignment.center,
                                   children: [
                                     gapW20,
                                     Icon(
@@ -7066,9 +7205,7 @@ class _ReusableImageRowState extends State<ReusableImageRow> {
                                     ),
                                     Text(
                                       'browse'.tr,
-                                      style: TextStyle(
-                                        color: Primary.primary,
-                                      ),
+                                      style: TextStyle(color: Primary.primary),
                                     ),
                                   ],
                                 ),
@@ -7121,14 +7258,12 @@ class _ReusableImageRowState extends State<ReusableImageRow> {
                   child: InkWell(
                     onTap: () {
                       setState(() {
-                        quotationController
-                            .decrementListViewLengthInQuotation(
-                              quotationController.increment + 50,
-                            );
-                        quotationController
-                            .removeFromRowsInListViewInQuotation(
-                              widget.index,
-                            );
+                        quotationController.decrementListViewLengthInQuotation(
+                          quotationController.increment + 50,
+                        );
+                        quotationController.removeFromRowsInListViewInQuotation(
+                          widget.index,
+                        );
                         // quotationController
                         //     .removeFromOrderLinesInQuotationList(
                         //       widget.index.toString(),
@@ -7423,18 +7558,14 @@ class _ReusableComboRowState extends State<ReusableComboRow> {
                         color: Colors.black.withAlpha((0.1 * 255).toInt()),
                         width: 1,
                       ),
-                      borderRadius: const BorderRadius.all(
-                        Radius.circular(6),
-                      ),
+                      borderRadius: const BorderRadius.all(Radius.circular(6)),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderSide: BorderSide(
                         color: Colors.black.withAlpha((0.1 * 255).toInt()),
                         width: 1,
                       ),
-                      borderRadius: const BorderRadius.all(
-                        Radius.circular(6),
-                      ),
+                      borderRadius: const BorderRadius.all(Radius.circular(6)),
                     ),
                     errorStyle: const TextStyle(fontSize: 10.0),
                     focusedErrorBorder: const OutlineInputBorder(
@@ -7482,18 +7613,14 @@ class _ReusableComboRowState extends State<ReusableComboRow> {
                         color: Colors.black.withAlpha((0.1 * 255).toInt()),
                         width: 1,
                       ),
-                      borderRadius: const BorderRadius.all(
-                        Radius.circular(6),
-                      ),
+                      borderRadius: const BorderRadius.all(Radius.circular(6)),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderSide: BorderSide(
                         color: Colors.black.withAlpha((0.1 * 255).toInt()),
                         width: 1,
                       ),
-                      borderRadius: const BorderRadius.all(
-                        Radius.circular(6),
-                      ),
+                      borderRadius: const BorderRadius.all(Radius.circular(6)),
                     ),
                     errorStyle: const TextStyle(fontSize: 10.0),
                     focusedErrorBorder: const OutlineInputBorder(
@@ -7592,8 +7719,7 @@ class _ReusableComboRowState extends State<ReusableComboRow> {
                     onChanged: (val) {
                       setState(() {
                         if (val == '') {
-                          cont.combosPriceControllers[widget.index]!.text =
-                              '0';
+                          cont.combosPriceControllers[widget.index]!.text = '0';
                         } else {
                           // cont.unitPriceControllers[widget.index]!.text = val;
                         }
@@ -7673,18 +7799,14 @@ class _ReusableComboRowState extends State<ReusableComboRow> {
                         color: Colors.black.withAlpha((0.1 * 255).toInt()),
                         width: 1,
                       ),
-                      borderRadius: const BorderRadius.all(
-                        Radius.circular(6),
-                      ),
+                      borderRadius: const BorderRadius.all(Radius.circular(6)),
                     ),
                     focusedBorder: OutlineInputBorder(
                       borderSide: BorderSide(
                         color: Colors.black.withAlpha((0.1 * 255).toInt()),
                         width: 1,
                       ),
-                      borderRadius: const BorderRadius.all(
-                        Radius.circular(6),
-                      ),
+                      borderRadius: const BorderRadius.all(Radius.circular(6)),
                     ),
                     errorStyle: const TextStyle(fontSize: 10.0),
                     focusedErrorBorder: const OutlineInputBorder(

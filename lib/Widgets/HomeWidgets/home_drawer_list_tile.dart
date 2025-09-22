@@ -8,7 +8,6 @@ import '../../Controllers/products_controller.dart';
 import '../../Locale_Memory/save_user_info_locally.dart';
 import '../../Screens/Combo/combo.dart';
 import '../../Screens/Products/CreateProductDialog/create_product_dialog.dart';
-import '../../Screens/garage/add_attribute.dart';
 import '../../const/colors.dart';
 // import 'dart:html' as html;
 

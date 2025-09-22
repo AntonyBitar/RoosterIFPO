@@ -1236,7 +1236,7 @@ class _ReusableItemRowState extends State<ReusableItemRow> {
                           : 100.w,
                   // rowWidth: MediaQuery.of(context).size.width * 0.12,
                   // textFieldWidth: MediaQuery.of(context).size.width * 0.12,
-                  clickableOptionText: 'create_virtual_item'.tr,
+                  clickableOptionText: 'create_item'.tr,
                   isThereClickableOption: true,
                   onTappedClickableOption: () {
                     productController.clearData();

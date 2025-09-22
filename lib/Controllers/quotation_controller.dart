@@ -7,27 +7,48 @@ import 'package:rooster_app/Backend/Quotations/get_quotations.dart';
 import 'package:rooster_app/Backend/get_currencies.dart';
 
 import '../Backend/PriceListBackend/get_prices_list_items.dart';
+
 import '../Backend/UsersBackend/get_user.dart';
 import '../const/functions.dart';
 import 'exchange_rates_controller.dart';
 
 class QuotationController extends GetxController {
-  int selectedHeaderIndex = 0;
-  Map selectedHeader={};
-  setSelectedHeaderIndex(int val){
-    selectedHeaderIndex=val;
-    update;
+  String selectedTermAndConditionId = '';
+  setSelectedTermAndConditionId(String val) {
+    selectedTermAndConditionId = val;
+    update();
   }
-  setSelectedHeader(Map val){
-    selectedHeader=val;
-    update;
+
+  String selectedPaymentTermId = '';
+  setSelectedPaymentTermId(String val) {
+    selectedPaymentTermId = val;
+    update();
+  }
+
+  String selectedDeliveryTermId = '';
+  setSelectedDeliveryTermId(String val) {
+    selectedDeliveryTermId = val;
+    update();
+  }
+
+  int selectedHeaderIndex = 0;
+  Map selectedHeader = {};
+  setSelectedHeaderIndex(int val) {
+    selectedHeaderIndex = val;
+    update();
+  }
+
+  setSelectedHeader(Map val) {
+    selectedHeader = val;
+    update();
   }
 
   int quotationCounter = 0;
-  setQuotationCounter(int val){
-    quotationCounter=val;
-    update;
+  setQuotationCounter(int val) {
+    quotationCounter = val;
+    update();
   }
+
   String status = '';
   setStatus(String val) {
     status = val;
@@ -198,7 +219,7 @@ class QuotationController extends GetxController {
     update();
   }
 
-  List<Map> headersList=[];
+  List<Map> headersList = [];
   List<String> cashingMethodsNamesList = [];
   List<String> cashingMethodsIdsList = [];
   List<String> itemsCode = [];
@@ -374,11 +395,9 @@ class QuotationController extends GetxController {
     }
     // print('cashing $cashingMethodsNamesList');
 
-
-    for (var header in p['companyHeaders']??[]) {
+    for (var header in p['companyHeaders'] ?? []) {
       headersList.add(header);
     }
-
 
     for (var combo in p['combos']) {
       combosMap["${combo['id']}"] = combo;
@@ -556,7 +575,7 @@ class QuotationController extends GetxController {
   };
   clearList() {
     rowsInListViewInQuotation = {};
-    orderedKeys=[];
+    orderedKeys = [];
     update();
   }
 
@@ -814,7 +833,9 @@ class QuotationController extends GetxController {
     quotationsList = [];
     isQuotationsFetched = false;
     update();
-    var p = await getAllQuotationsWithoutPending(searchInQuotationsController.text);
+    var p = await getAllQuotationsWithoutPending(
+      searchInQuotationsController.text,
+    );
     if ('$p' != '[]') {
       quotationsList = p;
       // print(quotationsList.length);
@@ -886,9 +907,7 @@ class QuotationController extends GetxController {
     quotationsList = [];
     isQuotationsFetched = false;
     update();
-    var p = await getAllQuotations(
-      searchInQuotationsController.text,
-    );
+    var p = await getAllQuotations(searchInQuotationsController.text);
     if ('$p' != '[]') {
       quotationsList = p;
       // print(quotationsList.length);
@@ -900,7 +919,7 @@ class QuotationController extends GetxController {
         if (item['status'] == 'pending' || item['status'] == 'sent') {
           // Check if this item already exists in quotations List pending
           bool exists = quotationsListPending.any(
-                (element) => element['id'] == item['id'],
+            (element) => element['id'] == item['id'],
           );
 
           if (!exists) {
@@ -915,7 +934,7 @@ class QuotationController extends GetxController {
         if (confirm['status'] == 'confirmed') {
           // Check if this item already exists in quotations List pending
           bool existsConfirm = quotationsListConfirmed.any(
-                (element) => element['id'] == confirm['id'],
+            (element) => element['id'] == confirm['id'],
           );
 
           if (!existsConfirm) {
@@ -927,10 +946,11 @@ class QuotationController extends GetxController {
         for (int i = 0; i < quotationsList.length; i++) {
           var ccItem = quotationsList[i];
           if (ccItem['status'] == 'confirmed' ||
+              ccItem['status'] == 'pending' ||
               ccItem['status'] == 'cancelled') {
             // Check if this item already exists in quotations List pending
             bool existsCC = quotationsListCC.any(
-                  (element) => element['id'] == ccItem['id'],
+              (element) => element['id'] == ccItem['id'],
             );
 
             if (!existsCC) {

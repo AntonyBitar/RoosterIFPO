@@ -564,7 +564,7 @@ class _SignFormState extends State<SignForm> {
                         res['data']['user']['name'],
                         '${res['data']['user']['company']['id']}',
                         '${res['data']['user']['company']['name']}',
-                          '0'//
+                          '1'//
                       );
                       if (res['data']['companySettings'].isNotEmpty) {
                         // print('object');print(res['data']['companySettings']);
