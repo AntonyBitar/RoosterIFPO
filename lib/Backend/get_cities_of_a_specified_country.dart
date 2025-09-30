@@ -12,6 +12,7 @@ Future getCitiesOfASpecifiedCountry(
   });
 
   var p = json.decode(response.body);
+  print(p);
   if(p['error']==false) {
     return p['data'];
   }else {

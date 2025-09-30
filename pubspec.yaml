@@ -106,3 +106,5 @@ flutter:
     - assets/images/
     - assets/appIcon/
     - assets/fonts/
+dependency_overrides:
+  intl: 0.20.2

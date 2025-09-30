@@ -8,7 +8,9 @@ saveUserInfoLocally(
   String companyId,
   String companyName,
   String isItGarage,
-) async {
+  String siteId,
+
+    ) async {
   SharedPreferences prefs = await SharedPreferences.getInstance();
   prefs.setString('accessToken', accessToken);
   prefs.setString('identifier1', userId);
@@ -17,6 +19,8 @@ saveUserInfoLocally(
   prefs.setString('companyId', companyId);
   prefs.setString('companyName', companyName);
   prefs.setString('isItGarage', isItGarage);
+  prefs.setString('siteId', siteId);
+
 }
 
 Future<Map> getUserInfoFromPref() async {
@@ -28,6 +32,8 @@ Future<Map> getUserInfoFromPref() async {
   String companyId = prefs.getString('companyId') ?? '';
   String companyName = prefs.getString('companyName') ?? '';
   String isItGarage = prefs.getString('isItGarage') ?? '1';
+  String siteId = prefs.getString('siteId') ?? '-1';
+
   return {
     'accessToken': accessToken,
     'identifier1': userId,
@@ -36,6 +42,8 @@ Future<Map> getUserInfoFromPref() async {
     'companyId': companyId,
     'companyName': companyName,
     'isItGarage': isItGarage,
+    'siteId':siteId ,
+
   };
 }
 

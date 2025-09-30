@@ -15,7 +15,6 @@ Future getFieldsForCreateClient() async {
       "Authorization": "Bearer $token"
     },
   );
-
   var p = json.decode(response.body);
   if(response.statusCode==200) {
     return p['data'];

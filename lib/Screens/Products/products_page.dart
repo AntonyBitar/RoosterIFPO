@@ -9,6 +9,7 @@ import 'package:rooster_app/const/colors.dart';
 import '../../Backend/CategoriesBackend/get_categories.dart';
 import '../../Backend/ProductsBackend/delete_product.dart';
 import '../../Controllers/products_controller.dart';
+import '../../Locale_Memory/save_user_info_locally.dart';
 import '../../Widgets/custom_snak_bar.dart';
 import '../../Widgets/loading.dart';
 import '../../Widgets/page_title.dart';
@@ -79,9 +80,14 @@ class _ProductsPageState extends State<ProductsPage> {
   // Function to scan barcode
 
   final ScrollController scrollController = ScrollController();
-
+  String userSiteId='-1';
+  getUserSiteId() async {
+    var curr = await getUserInfoFromPref();
+    userSiteId = curr['siteId'];
+  }
   @override
   void initState() {
+    getUserSiteId();
     productController.productsList.value = [].obs;
     productController.currentPage.value = 1;
     scrollController.addListener(() {
@@ -464,6 +470,7 @@ class _ProductsPageState extends State<ProductsPage> {
   _productsAsRowInTable(Map product, int index) {
     return InkWell(
       onDoubleTap: () {
+       if(product['site']['id'].toString()!=userSiteId)return;
         productController.setSelectedProductId('${product['id']}');
         productController.clearData();
         productController.getFieldsForCreateProductFromBack();
@@ -541,6 +548,9 @@ class _ProductsPageState extends State<ProductsPage> {
             //       '${product['current_quantity'] ?? ''} ${product['packageSetName'] ?? ''}',
             //   width: MediaQuery.of(context).size.width * 0.07,
             // ),
+            Visibility(
+                visible: (product['site']['id'].toString()==userSiteId),
+                child:
             SizedBox(
               width: MediaQuery.of(context).size.width * 0.03,
               child: ReusableMore(
@@ -608,7 +618,7 @@ class _ProductsPageState extends State<ProductsPage> {
                   ),
                 ],
               ),
-            ),
+            )),
           ],
         ),
       ),
@@ -618,6 +628,8 @@ class _ProductsPageState extends State<ProductsPage> {
   _productsCard(Map product, int index) {
     return InkWell(
       onDoubleTap: () {
+        if(product['site']['id'].toString()!=userSiteId)return;
+
         productController.setSelectedProductId('${product['id']}');
         productController.setSelectedProductIndex(index);
         productController.clearData();
@@ -686,6 +698,9 @@ class _ProductsPageState extends State<ProductsPage> {
                       Row(
                         children: [
                           // const FavoriteIcon(),
+                          Visibility(
+                              visible: (product['site']['id'].toString()==userSiteId),
+                              child:
                           SizedBox(
                             width: MediaQuery.of(context).size.width * 0.03,
                             child: ReusableMore(
@@ -742,7 +757,7 @@ class _ProductsPageState extends State<ProductsPage> {
                                 ),
                               ],
                             ),
-                          ),
+                          )),
                         ],
                       ),
                     ],
@@ -975,9 +990,15 @@ class _MobileProductsPageState extends State<MobileProductsPage> {
   ProductController productController = Get.find();
   List<String> categoriesNameList = ['all_categories'.tr];
   String? selectedItem = '';
+  String userSiteId='-1';
+
   List categoriesIds = ['0'];
   String selectedCategoryId = '0';
   bool isCategoriesFetched = false;
+  getUserSiteId() async {
+    var curr = await getUserInfoFromPref();
+    userSiteId = curr['siteId'];
+  }
   getCategoriesFromBack() async {
     var p = await getCategories('');
     setState(() {
@@ -991,6 +1012,7 @@ class _MobileProductsPageState extends State<MobileProductsPage> {
 
   @override
   void initState() {
+    getUserSiteId();
     productController.productsList.value = [].obs;
     productController.currentPage.value = 1;
     scrollController.addListener(() {
@@ -1313,6 +1335,8 @@ class _MobileProductsPageState extends State<MobileProductsPage> {
   _productsAsRowInTable(Map product, int index) {
     return InkWell(
       onDoubleTap: () {
+        if(product['site']['id'].toString()!=userSiteId)return;
+
         productController.setSelectedProductId('${product['id']}');
         productController.clearData();
         productController.getFieldsForCreateProductFromBack();
@@ -1369,72 +1393,76 @@ class _MobileProductsPageState extends State<MobileProductsPage> {
             //       '${product['current_quantity'] ?? ''} ${product['packageSetName'] ?? ''}',
             //   width:  150,
             // ),
-            SizedBox(
-              width: 100,
-              child: ReusableMore(
-                itemsList: [
-                  PopupMenuItem<String>(
-                    value: '1',
-                    onTap: () async {
-                      var res = await deleteProduct('${product['id']}');
-                      var p = json.decode(res.body);
-                      if (res.statusCode == 200) {
-                        CommonWidgets.snackBar('Success', p['message']);
-                        setState(() {
-                          productController.productsList.removeAt(index);
-                        });
-                      } else {
-                        CommonWidgets.snackBar('error', p['message']);
-                      }
-                    },
-                    child: Text('delete'.tr),
-                  ),
-                  // PopupMenuItem<String>(
-                  //   value: '2',
-                  //   onTap: () async {
-                  //     showDialog<String>(
-                  //         context: context,
-                  //         builder: (BuildContext context) =>
-                  //             AlertDialog(
-                  //                 backgroundColor:
-                  //                 Colors.white,
-                  //                 shape:
-                  //                 const RoundedRectangleBorder(
-                  //                   borderRadius:
-                  //                   BorderRadius.all(
-                  //                       Radius.circular(
-                  //                           9)),
-                  //                 ),
-                  //                 elevation: 0,
-                  //                 content: EditQuantityDialog(id:'${product['id']}',isMobile:true)));
-                  //   },
-                  //   child: Text('edit_quantity'.tr),
-                  // ),
-                  PopupMenuItem<String>(
-                    value: '2',
-                    onTap: () async {
-                      showDialog<String>(
-                        context: context,
-                        builder:
-                            (BuildContext context) => AlertDialog(
-                              backgroundColor: Colors.white,
-                              shape: const RoundedRectangleBorder(
-                                borderRadius: BorderRadius.all(
-                                  Radius.circular(9),
+            Visibility(
+              visible: (product['site']['id'].toString()==userSiteId),
+
+              child: SizedBox(
+                width: 100,
+                child: ReusableMore(
+                  itemsList: [
+                    PopupMenuItem<String>(
+                      value: '1',
+                      onTap: () async {
+                        var res = await deleteProduct('${product['id']}');
+                        var p = json.decode(res.body);
+                        if (res.statusCode == 200) {
+                          CommonWidgets.snackBar('Success', p['message']);
+                          setState(() {
+                            productController.productsList.removeAt(index);
+                          });
+                        } else {
+                          CommonWidgets.snackBar('error', p['message']);
+                        }
+                      },
+                      child: Text('delete'.tr),
+                    ),
+                    // PopupMenuItem<String>(
+                    //   value: '2',
+                    //   onTap: () async {
+                    //     showDialog<String>(
+                    //         context: context,
+                    //         builder: (BuildContext context) =>
+                    //             AlertDialog(
+                    //                 backgroundColor:
+                    //                 Colors.white,
+                    //                 shape:
+                    //                 const RoundedRectangleBorder(
+                    //                   borderRadius:
+                    //                   BorderRadius.all(
+                    //                       Radius.circular(
+                    //                           9)),
+                    //                 ),
+                    //                 elevation: 0,
+                    //                 content: EditQuantityDialog(id:'${product['id']}',isMobile:true)));
+                    //   },
+                    //   child: Text('edit_quantity'.tr),
+                    // ),
+                    PopupMenuItem<String>(
+                      value: '2',
+                      onTap: () async {
+                        showDialog<String>(
+                          context: context,
+                          builder:
+                              (BuildContext context) => AlertDialog(
+                                backgroundColor: Colors.white,
+                                shape: const RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.all(
+                                    Radius.circular(9),
+                                  ),
+                                ),
+                                elevation: 0,
+                                content: EditPriceDialog(
+                                  product: product,
+                                  id: '${product['id']}',
+                                  isMobile: true,
                                 ),
                               ),
-                              elevation: 0,
-                              content: EditPriceDialog(
-                                product: product,
-                                id: '${product['id']}',
-                                isMobile: true,
-                              ),
-                            ),
-                      );
-                    },
-                    child: Text('edit_price'.tr),
-                  ),
-                ],
+                        );
+                      },
+                      child: Text('edit_price'.tr),
+                    ),
+                  ],
+                ),
               ),
             ),
           ],
@@ -1442,10 +1470,10 @@ class _MobileProductsPageState extends State<MobileProductsPage> {
       ),
     );
   }
-
   _productsCard(Map product, int index) {
     return InkWell(
       onDoubleTap: () {
+        if(product['site']['id'].toString()!=userSiteId)return;
         productController.setSelectedProductId('${product['id']}');
         productController.clearData();
         productController.getFieldsForCreateProductFromBack();
@@ -1502,6 +1530,10 @@ class _MobileProductsPageState extends State<MobileProductsPage> {
                       Row(
                         children: [
                           // const FavoriteIcon(),
+                          Visibility(
+                              visible: (product['site']['id'].toString()==userSiteId),
+
+                              child:
                           SizedBox(
                             width: MediaQuery.of(context).size.width * 0.03,
                             child: ReusableMore(
@@ -1579,7 +1611,7 @@ class _MobileProductsPageState extends State<MobileProductsPage> {
                                 ),
                               ],
                             ),
-                          ),
+                          )),
                         ],
                       ),
                     ],

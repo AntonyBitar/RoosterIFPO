@@ -62,7 +62,6 @@ class ClientController extends GetxController {
     accounts = [];
     isClientsFetched = false;
     var p = await getAllClients(searchController.text);
-
     accounts = p;
     // accounts = accounts.reversed.toList();
     isClientsFetched = true;

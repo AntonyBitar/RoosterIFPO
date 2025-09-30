@@ -40,7 +40,7 @@ class _AccountsPageState extends State<AccountsPage> {
   FilterItems? selectedFilterItem;
   // GlobalKey filterKey = GlobalKey();
   bool isGridClicked = false;
-
+  String userSiteId='-1';
   final HomeController homeController = Get.find();
   List tabsList = ['general', 'transactions'];
   int selectedTabIndex = 0;
@@ -100,9 +100,14 @@ class _AccountsPageState extends State<AccountsPage> {
     var curr = await getCompanyPrimaryCurrencyFromPref();
     primaryCurr = curr;
   }
+  getUserSiteId() async {
+    var curr = await getUserInfoFromPref();
+    userSiteId = curr['siteId'];
+  }
 
   @override
   void initState() {
+    getUserSiteId();
     clientController.getAllUsersSalesPersonFromBack();
     clientController.selectedSalesPerson = '';
     clientController.selectedSalesPersonId = 0;
@@ -314,111 +319,115 @@ class _AccountsPageState extends State<AccountsPage> {
                                           child: Row(
                                             children: [
                                               ClientAsRowInTable(
+                                                canBeUpdated:clientCont.accounts[index]['site']['id'].toString()==userSiteId.toString(),
                                                 info:
                                                     clientCont.accounts[index],
                                                 index: index,
                                               ),
-                                              SizedBox(
-                                                width:
-                                                    MediaQuery.of(
-                                                      context,
-                                                    ).size.width *
-                                                    0.13,
-                                                child: Row(
-                                                  mainAxisAlignment:
-                                                      MainAxisAlignment
-                                                          .spaceEvenly,
-                                                  children: [
-                                                    SizedBox(
-                                                      width:
-                                                          MediaQuery.of(
-                                                            context,
-                                                          ).size.width *
-                                                          0.03,
-                                                      child: ReusableMore(
-                                                        itemsList: [
-                                                          PopupMenuItem<String>(
-                                                            value: '1',
-                                                            onTap: () async {
-                                                              var res =
-                                                                  await deleteClient(
-                                                                    '${clientCont.accounts[index]['id']}',
+                                              Visibility(
+                                                visible: clientCont.accounts[index]['site']['id'].toString()==userSiteId,
+                                                child: SizedBox(
+                                                  width:
+                                                      MediaQuery.of(
+                                                        context,
+                                                      ).size.width *
+                                                      0.13,
+                                                  child: Row(
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment
+                                                            .spaceEvenly,
+                                                    children: [
+                                                      SizedBox(
+                                                        width:
+                                                            MediaQuery.of(
+                                                              context,
+                                                            ).size.width *
+                                                            0.03,
+                                                        child: ReusableMore(
+                                                          itemsList: [
+                                                            PopupMenuItem<String>(
+                                                              value: '1',
+                                                              onTap: () async {
+                                                                var res =
+                                                                    await deleteClient(
+                                                                      '${clientCont.accounts[index]['id']}',
+                                                                    );
+                                                                var p = json
+                                                                    .decode(
+                                                                      res.body,
+                                                                    );
+                                                                if (res.statusCode ==
+                                                                    200) {
+                                                                  CommonWidgets.snackBar(
+                                                                    'Success',
+                                                                    p['message'],
                                                                   );
-                                                              var p = json
-                                                                  .decode(
-                                                                    res.body,
+                                                                  setState(() {
+                                                                    selectedNumberOfRowsInGeneralTabAsInt =
+                                                                        selectedNumberOfRowsInGeneralTabAsInt -
+                                                                        1;
+                                                                    clientCont
+                                                                        .removeFromAccounts(
+                                                                          index,
+                                                                        );
+                                                                    generalListViewLength =
+                                                                        generalListViewLength -
+                                                                        0.09;
+                                                                  });
+                                                                } else {
+                                                                  CommonWidgets.snackBar(
+                                                                    'error',
+                                                                    p['message'],
                                                                   );
-                                                              if (res.statusCode ==
-                                                                  200) {
-                                                                CommonWidgets.snackBar(
-                                                                  'Success',
-                                                                  p['message'],
-                                                                );
-                                                                setState(() {
-                                                                  selectedNumberOfRowsInGeneralTabAsInt =
-                                                                      selectedNumberOfRowsInGeneralTabAsInt -
-                                                                      1;
-                                                                  clientCont
-                                                                      .removeFromAccounts(
-                                                                        index,
-                                                                      );
-                                                                  generalListViewLength =
-                                                                      generalListViewLength -
-                                                                      0.09;
-                                                                });
-                                                              } else {
-                                                                CommonWidgets.snackBar(
-                                                                  'error',
-                                                                  p['message'],
-                                                                );
-                                                              }
-                                                            },
-                                                            child: Text(
-                                                              'delete'.tr,
+                                                                }
+                                                              },
+                                                              child: Text(
+                                                                'delete'.tr,
+                                                              ),
                                                             ),
-                                                          ),
-                                                          PopupMenuItem<String>(
-                                                            value: '2',
-                                                            onTap: () async {
-                                                              showDialog<
-                                                                String
-                                                              >(
-                                                                context:
-                                                                    context,
-                                                                builder:
-                                                                    (
-                                                                      BuildContext
+                                                            PopupMenuItem<String>(
+                                                              value: '2',
+                                                              onTap: () async {
+                                                                showDialog<
+                                                                  String
+                                                                >(
+                                                                  context:
                                                                       context,
-                                                                    ) => AlertDialog(
-                                                                      backgroundColor:
-                                                                          Colors
-                                                                              .white,
-                                                                      shape: const RoundedRectangleBorder(
-                                                                        borderRadius: BorderRadius.all(
-                                                                          Radius.circular(
-                                                                            9,
+                                                                  builder:
+                                                                      (
+                                                                        BuildContext
+                                                                        context,
+                                                                      ) => AlertDialog(
+                                                                        backgroundColor:
+                                                                            Colors
+                                                                                .white,
+                                                                        shape: const RoundedRectangleBorder(
+                                                                          borderRadius: BorderRadius.all(
+                                                                            Radius.circular(
+                                                                              9,
+                                                                            ),
                                                                           ),
                                                                         ),
+                                                                        elevation:
+                                                                            0,
+                                                                        content: UpdateClientDialog(
+                                                                          index:
+                                                                              index,
+                                                                          info:
+                                                                              clientCont.accounts[index],
+                                                                        ),
                                                                       ),
-                                                                      elevation:
-                                                                          0,
-                                                                      content: UpdateClientDialog(
-                                                                        index:
-                                                                            index,
-                                                                        info:
-                                                                            clientCont.accounts[index],
-                                                                      ),
-                                                                    ),
-                                                              );
-                                                            },
-                                                            child: Text(
-                                                              'update'.tr,
+                                                                );
+                                                              },
+                                                              child: Text(
+                                                                'update'.tr,
+                                                              ),
                                                             ),
-                                                          ),
-                                                        ],
+                                                          ],
+                                                        ),
                                                       ),
-                                                    ),
-                                                  ],
+                                                    ],
+                                                  ),
                                                 ),
                                               ),
                                             ],
@@ -765,10 +774,12 @@ class ClientAsRowInTable extends StatelessWidget {
     required this.info,
     required this.index,
     this.isDesktop = true,
+    required this.canBeUpdated,
   });
   final Map info;
   final int index;
   final bool isDesktop;
+  final bool canBeUpdated;
   @override
   Widget build(BuildContext context) {
     return GetBuilder<ClientController>(
@@ -792,7 +803,7 @@ class ClientAsRowInTable extends StatelessWidget {
           onDoubleTap:
               info['name'] == 'cash customer'
                   ? null
-                  : () {
+                  : canBeUpdated ? () {
                     showDialog<String>(
                       context: context,
                       builder:
@@ -810,7 +821,7 @@ class ClientAsRowInTable extends StatelessWidget {
                             ),
                           ),
                     );
-                  },
+                  }:null,
           child: Container(
             padding: EdgeInsets.symmetric(
               horizontal: isDesktop ? 5 : 0,
@@ -1064,6 +1075,7 @@ class _MobileAccountsPageState extends State<MobileAccountsPage> {
   int selectedTabIndex = 0;
   double generalListViewLength = 100;
   double transactionListViewLength = 100;
+  String userSiteId="-1";
   String selectedNumberOfRowsInGeneralTab = '10';
   int selectedNumberOfRowsInGeneralTabAsInt = 10;
   String selectedNumberOfRowsInTransactionsTab = '10';
@@ -1071,6 +1083,7 @@ class _MobileAccountsPageState extends State<MobileAccountsPage> {
   int startInGeneral = 1;
   bool isArrowBackClickedInGeneral = false;
   bool isArrowForwardClickedInGeneral = false;
+
   int startInTransactions = 1;
   bool isArrowBackClickedInTransactions = false;
   bool isArrowForwardClickedInTransactions = false;
@@ -1115,7 +1128,10 @@ class _MobileAccountsPageState extends State<MobileAccountsPage> {
     var curr = await getCompanyPrimaryCurrencyFromPref();
     primaryCurr = curr;
   }
-
+  getUserSiteId() async {
+    var curr = await getUserInfoFromPref();
+    userSiteId = curr['siteId'];
+  }
   // TextEditingController searchController = TextEditingController();
   @override
   void initState() {
@@ -1312,6 +1328,7 @@ class _MobileAccountsPageState extends State<MobileAccountsPage> {
                                                     child: Row(
                                                       children: [
                                                         ClientAsRowInTable(
+                                                          canBeUpdated:clientCont.accounts[index]['site']['id'].toString()==userSiteId.toString(),
                                                           info:
                                                               clientCont
                                                                   .accounts[index],

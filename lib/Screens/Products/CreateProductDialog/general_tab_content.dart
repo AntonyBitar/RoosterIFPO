@@ -21,7 +21,6 @@ TextEditingController dateController = TextEditingController();
 
 class GeneralTabContent extends StatefulWidget {
   const GeneralTabContent({super.key});
-
   @override
   State<GeneralTabContent> createState() => _GeneralTabContentState();
 }
@@ -183,8 +182,7 @@ class _GeneralTabContentState extends State<GeneralTabContent> {
                               controller: taxationController,
                               optionsList: cont.taxationGroupsNames,
                               text: 'taxation'.tr,
-                              hint:
-                                  cont.taxationGroupsNames[cont
+                              hint:cont.taxationGroupsNames[cont
                                       .taxationGroupsIds
                                       .indexOf(cont.selectedTaxationGroupsId)],
                               rowWidth:

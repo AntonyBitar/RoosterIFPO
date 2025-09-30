@@ -313,6 +313,7 @@ class ProductController extends GetxController {
   }
 
   getFieldsForCreateProductFromBack() async {
+
     isProductsInfoFetched = false;
     counterForImages = 1;
     resetAltCodesList();
@@ -386,6 +387,7 @@ class ProductController extends GetxController {
       //   // categoriesIds.add('${item['id']}');
       //   update();
       // }
+
       for (var item in p['currencies']) {
         currenciesNames.add('${item['name']}');
         currenciesIds.add('${item['id']}');

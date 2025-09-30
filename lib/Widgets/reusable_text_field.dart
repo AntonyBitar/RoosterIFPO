@@ -333,7 +333,7 @@ class DialogTextField extends StatelessWidget {
               validator: (value) {
                 return validationFunc(value);
               },
-              onChanged: (value) => onChangedFunc!(value),
+              onChanged: (value) => onChangedFunc==null?(){}:onChangedFunc!(value),
             ),
           ),
         ],

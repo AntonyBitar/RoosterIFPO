@@ -320,7 +320,7 @@ class _AdminSectionInHomeAppBarState extends State<AdminSectionInHomeAppBar> {
                           //   return const SignUpScreen();
                           // }));
 
-                          await saveUserInfoLocally('', '', '', '', '','','');
+                          await saveUserInfoLocally('', '', '', '', '','','','');
                           await saveCompanySettingsLocally('', '','','','', '','','', '','','',);
                           await saveHeader1Locally('', '','', '', '', '', '','','','','','','','','' );
                           await saveHeader2Locally('', '','', '', '', '', '','','','','','','','','' );

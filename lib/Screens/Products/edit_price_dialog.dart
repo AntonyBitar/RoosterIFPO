@@ -37,6 +37,7 @@ class _EditPriceDialogState extends State<EditPriceDialog> {
     var p = await getCurrencies();
     if ('$p' != '[]') {
       setState(() {
+
         for (var c in p['currencies']) {
           currenciesNamesList.add('${c['name']}');
           currenciesIdsList.add('${c['id']}');
