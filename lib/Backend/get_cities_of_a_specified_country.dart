@@ -10,9 +10,7 @@ Future getCitiesOfASpecifiedCountry(
   var response = await http.post(uri, body: {
     "country": country
   });
-
   var p = json.decode(response.body);
-  print(p);
   if(p['error']==false) {
     return p['data'];
   }else {

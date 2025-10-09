@@ -235,6 +235,7 @@ class _AddNewClientState extends State<AddNewClient> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             DialogTextField(
+                              read: true,
                               textEditingController: clientNumberController,
                               text: '${'client_code'.tr}*',
                               rowWidth: bigRowWidth,
@@ -2185,6 +2186,7 @@ class _MobileAddNewClientState extends State<MobileAddNewClient> {
                   ),
                   gapH16,
                   DialogTextField(
+                    read: true,
                     globalKey: clientNumberKey,
                     textEditingController: clientNumberController,
                     text: '${'client_code'.tr}*',

@@ -440,6 +440,7 @@ class ProductController extends GetxController {
       isProductsInfoFetched = true;
       update();
     }
+
   }
 
   setSelectedItemTypesId(String newVal) {

@@ -6,6 +6,7 @@ saveUserInfoLocally(
   String email,
   String name,
   String companyId,
+  String isMainSite,
   String companyName,
   String isItGarage,
   String siteId,
@@ -17,6 +18,7 @@ saveUserInfoLocally(
   prefs.setString('email', email);
   prefs.setString('name', name);
   prefs.setString('companyId', companyId);
+  prefs.setString('isMainSite', isMainSite);
   prefs.setString('companyName', companyName);
   prefs.setString('isItGarage', isItGarage);
   prefs.setString('siteId', siteId);
@@ -33,6 +35,7 @@ Future<Map> getUserInfoFromPref() async {
   String companyName = prefs.getString('companyName') ?? '';
   String isItGarage = prefs.getString('isItGarage') ?? '1';
   String siteId = prefs.getString('siteId') ?? '-1';
+  String isMainSite = prefs.getString('isMainSite') ?? '0';
 
   return {
     'accessToken': accessToken,
@@ -43,7 +46,7 @@ Future<Map> getUserInfoFromPref() async {
     'companyName': companyName,
     'isItGarage': isItGarage,
     'siteId':siteId ,
-
+    'isMainSite':isMainSite
   };
 }
 

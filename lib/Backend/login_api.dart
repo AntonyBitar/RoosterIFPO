@@ -9,6 +9,7 @@ Future login(String email, String password) async {
     'email': email,
     'password': password,
   });
+  print(response.body);
   var p = json.decode(response.body);
   return p;
 }

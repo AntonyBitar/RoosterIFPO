@@ -373,6 +373,7 @@ class _SignFormState extends State<SignForm> {
                           res['data']['user']['email'],
                           res['data']['user']['name'],
                           '${res['data']['user']['company']['id']}',
+                          '${res['data']['user']['isMainSite']}',
                           '${res['data']['user']['company']['name']}',
                           '0',//
                           '${res['data']['user']['site']['id']}',
@@ -565,6 +566,7 @@ class _SignFormState extends State<SignForm> {
                         res['data']['user']['email'],
                         res['data']['user']['name'],
                         '${res['data']['user']['company']['id']}',
+                        '${res['data']['user']['isMainSite']}',
                         '${res['data']['user']['company']['name']}',
 
                           '1',

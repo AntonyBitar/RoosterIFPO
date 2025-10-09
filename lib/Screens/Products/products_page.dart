@@ -80,14 +80,13 @@ class _ProductsPageState extends State<ProductsPage> {
   // Function to scan barcode
 
   final ScrollController scrollController = ScrollController();
-  String userSiteId='-1';
-  getUserSiteId() async {
+  bool isMainSite=false;
+  getIfMainSiteSite() async {
     var curr = await getUserInfoFromPref();
-    userSiteId = curr['siteId'];
-  }
+    isMainSite = curr['isMainSite'].toString() == '1';  }
   @override
   void initState() {
-    getUserSiteId();
+    getIfMainSiteSite();
     productController.productsList.value = [].obs;
     productController.currentPage.value = 1;
     scrollController.addListener(() {
@@ -117,34 +116,36 @@ class _ProductsPageState extends State<ProductsPage> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 PageTitle(text: 'products'.tr),
-                ReusableButtonWithColor(
-                  width: MediaQuery.of(context).size.width * 0.15,
-                  height: 45,
-                  onTapFunction: () {
-                    productController.clearData();
-                    productController.getFieldsForCreateProductFromBack();
-                    productController.setIsItUpdateProduct(false);
-                    showDialog<String>(
-                      context: context,
-                      builder:
-                          (BuildContext context) => const AlertDialog(
-                            backgroundColor: Colors.white,
-                            contentPadding: EdgeInsets.all(0),
-                            titlePadding: EdgeInsets.all(0),
-                            actionsPadding: EdgeInsets.all(0),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.all(
-                                Radius.circular(9),
+                Visibility(visible: isMainSite,
+                  child: ReusableButtonWithColor(
+                    width: MediaQuery.of(context).size.width * 0.15,
+                    height: 45,
+                    onTapFunction: () {
+                      productController.clearData();
+                      productController.getFieldsForCreateProductFromBack();
+                      productController.setIsItUpdateProduct(false);
+                      showDialog<String>(
+                        context: context,
+                        builder:
+                            (BuildContext context) => const AlertDialog(
+                              backgroundColor: Colors.white,
+                              contentPadding: EdgeInsets.all(0),
+                              titlePadding: EdgeInsets.all(0),
+                              actionsPadding: EdgeInsets.all(0),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.all(
+                                  Radius.circular(9),
+                                ),
+                              ),
+                              elevation: 0,
+                              content: CreateProductDialogContent(
+                                isFromProductsPage: true,
                               ),
                             ),
-                            elevation: 0,
-                            content: CreateProductDialogContent(
-                              isFromProductsPage: true,
-                            ),
-                          ),
-                    );
-                  },
-                  btnText: 'create_new_product'.tr,
+                      );
+                    },
+                    btnText: 'create_new_product'.tr,
+                  ),
                 ),
               ],
             ),
@@ -470,7 +471,7 @@ class _ProductsPageState extends State<ProductsPage> {
   _productsAsRowInTable(Map product, int index) {
     return InkWell(
       onDoubleTap: () {
-       if(product['site']['id'].toString()!=userSiteId)return;
+       if(isMainSite==false)return;
         productController.setSelectedProductId('${product['id']}');
         productController.clearData();
         productController.getFieldsForCreateProductFromBack();
@@ -549,7 +550,7 @@ class _ProductsPageState extends State<ProductsPage> {
             //   width: MediaQuery.of(context).size.width * 0.07,
             // ),
             Visibility(
-                visible: (product['site']['id'].toString()==userSiteId),
+                visible: isMainSite,
                 child:
             SizedBox(
               width: MediaQuery.of(context).size.width * 0.03,
@@ -628,7 +629,7 @@ class _ProductsPageState extends State<ProductsPage> {
   _productsCard(Map product, int index) {
     return InkWell(
       onDoubleTap: () {
-        if(product['site']['id'].toString()!=userSiteId)return;
+        if(isMainSite==false)return;
 
         productController.setSelectedProductId('${product['id']}');
         productController.setSelectedProductIndex(index);
@@ -699,7 +700,7 @@ class _ProductsPageState extends State<ProductsPage> {
                         children: [
                           // const FavoriteIcon(),
                           Visibility(
-                              visible: (product['site']['id'].toString()==userSiteId),
+                              visible:isMainSite,
                               child:
                           SizedBox(
                             width: MediaQuery.of(context).size.width * 0.03,
@@ -990,14 +991,14 @@ class _MobileProductsPageState extends State<MobileProductsPage> {
   ProductController productController = Get.find();
   List<String> categoriesNameList = ['all_categories'.tr];
   String? selectedItem = '';
-  String userSiteId='-1';
 
   List categoriesIds = ['0'];
   String selectedCategoryId = '0';
+  bool isMainSite=false;
   bool isCategoriesFetched = false;
-  getUserSiteId() async {
+  getIfMainSiteSite() async {
     var curr = await getUserInfoFromPref();
-    userSiteId = curr['siteId'];
+    isMainSite = curr['isMainSite'].toString() == '1';
   }
   getCategoriesFromBack() async {
     var p = await getCategories('');
@@ -1012,7 +1013,7 @@ class _MobileProductsPageState extends State<MobileProductsPage> {
 
   @override
   void initState() {
-    getUserSiteId();
+    getIfMainSiteSite();
     productController.productsList.value = [].obs;
     productController.currentPage.value = 1;
     scrollController.addListener(() {
@@ -1040,30 +1041,32 @@ class _MobileProductsPageState extends State<MobileProductsPage> {
             children: [
               PageTitle(text: 'products'.tr),
               gapH10,
-              ReusableButtonWithColor(
-                width: MediaQuery.of(context).size.width * 0.5,
-                height: 45,
-                onTapFunction: () {
-                  productController.clearData();
-                  productController.getFieldsForCreateProductFromBack();
-                  productController.setIsItUpdateProduct(false);
-                  showDialog<String>(
-                    context: context,
-                    builder:
-                        (BuildContext context) => const AlertDialog(
-                          backgroundColor: Colors.white,
-                          contentPadding: EdgeInsets.all(0),
-                          titlePadding: EdgeInsets.all(0),
-                          actionsPadding: EdgeInsets.all(0),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.all(Radius.circular(9)),
+              Visibility(visible: isMainSite,
+                child: ReusableButtonWithColor(
+                  width: MediaQuery.of(context).size.width * 0.5,
+                  height: 45,
+                  onTapFunction: () {
+                    productController.clearData();
+                    productController.getFieldsForCreateProductFromBack();
+                    productController.setIsItUpdateProduct(false);
+                    showDialog<String>(
+                      context: context,
+                      builder:
+                          (BuildContext context) => const AlertDialog(
+                            backgroundColor: Colors.white,
+                            contentPadding: EdgeInsets.all(0),
+                            titlePadding: EdgeInsets.all(0),
+                            actionsPadding: EdgeInsets.all(0),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.all(Radius.circular(9)),
+                            ),
+                            elevation: 0,
+                            content: MobileCreateProductDialogContent(),
                           ),
-                          elevation: 0,
-                          content: MobileCreateProductDialogContent(),
-                        ),
-                  );
-                },
-                btnText: 'create_new_product'.tr,
+                    );
+                  },
+                  btnText: 'create_new_product'.tr,
+                ),
               ),
               gapH10,
               Row(
@@ -1335,7 +1338,7 @@ class _MobileProductsPageState extends State<MobileProductsPage> {
   _productsAsRowInTable(Map product, int index) {
     return InkWell(
       onDoubleTap: () {
-        if(product['site']['id'].toString()!=userSiteId)return;
+        if(isMainSite==false)return;
 
         productController.setSelectedProductId('${product['id']}');
         productController.clearData();
@@ -1394,7 +1397,7 @@ class _MobileProductsPageState extends State<MobileProductsPage> {
             //   width:  150,
             // ),
             Visibility(
-              visible: (product['site']['id'].toString()==userSiteId),
+              visible: isMainSite,
 
               child: SizedBox(
                 width: 100,
@@ -1473,7 +1476,7 @@ class _MobileProductsPageState extends State<MobileProductsPage> {
   _productsCard(Map product, int index) {
     return InkWell(
       onDoubleTap: () {
-        if(product['site']['id'].toString()!=userSiteId)return;
+        if(isMainSite==false)return;
         productController.setSelectedProductId('${product['id']}');
         productController.clearData();
         productController.getFieldsForCreateProductFromBack();
@@ -1531,7 +1534,7 @@ class _MobileProductsPageState extends State<MobileProductsPage> {
                         children: [
                           // const FavoriteIcon(),
                           Visibility(
-                              visible: (product['site']['id'].toString()==userSiteId),
+                              visible:isMainSite,
 
                               child:
                           SizedBox(
